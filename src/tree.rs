@@ -1,4 +1,5 @@
 use crate::build::{OCI_WHITEOUT_OPAQUE, OCI_WHITEOUT_PREFIX, OVERLAYFS_WHITEOUT_OPAQUE};
+use crate::tree::WhiteoutSpec::Overlayfs;
 use nix::sys::stat;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -21,12 +22,20 @@ pub enum Overlay {
     UpperRemove,
 }
 
-#[derive(PartialEq)]
+#[derive(PartialEq, Clone, Copy)]
 pub enum WhiteoutSpec {
     /// https://github.com/opencontainers/image-spec/blob/master/layer.md#whiteouts
     Oci,
     /// "whiteouts and opaque directories" in https://www.kernel.org/doc/Documentation/filesystems/overlayfs.txt
     Overlayfs,
+}
+
+#[derive(Clone, Debug, PartialEq)]
+pub enum WhiteoutType {
+    OciOpaque,
+    OciRemoval,
+    OverlayFsOpaque,
+    OverlayFsRemoval,
 }
 
 pub type XattrName = Vec<u8>;
@@ -44,11 +53,11 @@ impl XAttrs {
         }
     }
 
-    pub fn get(self, key: &OsString) -> Option<&XattrValue> {
+    pub fn get(&self, key: &OsString) -> Option<&XattrValue> {
         self.pairs.get(key)
     }
 
-    pub fn add(mut self, key: OsString, value: XattrValue) {
+    pub fn add(&mut self, key: OsString, value: XattrValue) {
         self.pairs.insert(key, value);
     }
 }
@@ -130,6 +139,57 @@ impl TreeNode {
         }
         return Ok(());
     }
+
+    pub fn build_node_overlay(&mut self, whiteout_spec: WhiteoutSpec) {
+        if whiteout_spec == WhiteoutSpec::Oci {
+            if self.name == OCI_WHITEOUT_OPAQUE {
+                println!("handle oci opaque");
+                self.overlay = Overlay::UpperOpaque;
+            } else if self.name.starts_with(OCI_WHITEOUT_PREFIX) {
+                println!("handle oci whiteout");
+                self.overlay = Overlay::UpperRemove;
+            }
+            return;
+        }
+
+        if whiteout_spec == WhiteoutSpec::Overlayfs {
+            if self.is_overlayfs_whiteout(&whiteout_spec) {
+                println!("handle overlayfs whiteout");
+                self.overlay = Overlay::UpperRemove;
+            } else if self.is_directory() && self.is_overlayfs_opaque(&whiteout_spec) {
+                println!("handle overlayfs opaque");
+                self.overlay = Overlay::UpperOpaque;
+            }
+        }
+    }
+
+    /// Get real whiteout type by spec, oci or overlayfs
+    pub fn whiteout_type(&self, spec: &WhiteoutSpec) -> Option<WhiteoutType> {
+        if self.overlay == Overlay::Lower {
+            return None;
+        }
+
+        match spec {
+            WhiteoutSpec::Oci => {
+                if let Some(name) = self.name.to_str() {
+                    if name == OCI_WHITEOUT_OPAQUE {
+                        return Some(WhiteoutType::OciOpaque);
+                    } else if name.starts_with(OCI_WHITEOUT_PREFIX) {
+                        return Some(WhiteoutType::OciRemoval);
+                    }
+                }
+            }
+            WhiteoutSpec::Overlayfs => {
+                if self.is_overlayfs_whiteout(spec) {
+                    return Some(WhiteoutType::OverlayFsRemoval);
+                } else if self.is_overlayfs_opaque(spec) {
+                    return Some(WhiteoutType::OverlayFsOpaque);
+                }
+            }
+        }
+
+        None
+    }
 }
 
 pub struct FileSystemTree {
@@ -137,16 +197,19 @@ pub struct FileSystemTree {
 }
 
 impl FileSystemTree {
-    pub fn build_from_file_system(path: PathBuf, overlay: Overlay) -> io::Result<FileSystemTree> {
+    pub fn build_from_file_system(
+        path: PathBuf,
+        overlay: Overlay,
+        whiteout_spec: WhiteoutSpec,
+    ) -> io::Result<FileSystemTree> {
         // Got metadata
         let meta = fs::metadata(path.clone())?;
-        let xattr = XAttrs::new();
         // Root dir replace /
         let mut node = TreeNode::new("/".to_string(), meta, overlay);
         // Build node xattrs
-        node.build_node_xattrs(path);
+        node.build_node_xattrs(path.clone())?;
         let mut data = Tree::new(node);
-        Self::build_file_system_subtree(&mut data, path.clone(), overlay)?;
+        Self::build_file_system_subtree(&mut data, path.clone(), overlay, whiteout_spec)?;
         Ok(FileSystemTree { data })
     }
 
@@ -154,6 +217,7 @@ impl FileSystemTree {
         root: &mut Tree<TreeNode>,
         path: PathBuf,
         overlay: Overlay,
+        whiteout_spec: WhiteoutSpec,
     ) -> io::Result<()> {
         if path.is_dir() {
             for entry in fs::read_dir(path.clone())? {
@@ -163,23 +227,22 @@ impl FileSystemTree {
                 let metadata = fs::metadata(entry_path.clone())?;
                 let file_name = entry_path.file_name().unwrap().to_str().unwrap();
                 //2. create node
-
-                let mut overlay = overlay;
-                // handler
-                if overlay != Overlay::Lower {
-                    if file_name == OCI_WHITEOUT_OPAQUE {
-                        overlay = Overlay::UpperOpaque;
-                    } else if file_name.starts_with(OCI_WHITEOUT_PREFIX) {
-                        println!("handle .wh.");
-                        overlay = Overlay::UpperRemove;
-                    }
-                }
                 let mut node = TreeNode::new(String::from(file_name), metadata, overlay);
-                node.build_node_xattrs(path.clone());
+                // 2.1 build node xattr
+                node.build_node_xattrs(path.clone())?;
+                // 2.2 build node whiteout
+                if overlay != Overlay::Lower {
+                    node.build_node_overlay(whiteout_spec);
+                }
                 let mut new_tree = Tree::new(node);
 
                 if entry_path.is_dir() {
-                    let _ = Self::build_file_system_subtree(&mut new_tree, entry_path, overlay);
+                    let _ = Self::build_file_system_subtree(
+                        &mut new_tree,
+                        entry_path,
+                        overlay,
+                        whiteout_spec,
+                    );
                 }
                 //3. push back to root
                 root.push_back(new_tree);
