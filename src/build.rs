@@ -300,7 +300,7 @@ mod tests {
 
     #[test]
     fn test_oci_upper_remove_base() {
-        let base_path = PathBuf::from("/file-example/file-example/example4/base-dir");
+        let base_path = PathBuf::from("./file-example/file-example/example4/base-dir");
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
