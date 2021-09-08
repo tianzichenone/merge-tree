@@ -1,5 +1,4 @@
 use crate::build::{OCI_WHITEOUT_OPAQUE, OCI_WHITEOUT_PREFIX, OVERLAYFS_WHITEOUT_OPAQUE};
-use crate::tree::WhiteoutSpec::Overlayfs;
 use nix::sys::stat;
 use std::collections::HashMap;
 use std::collections::VecDeque;
@@ -171,12 +170,10 @@ impl TreeNode {
 
         match spec {
             WhiteoutSpec::Oci => {
-                if let Some(name) = self.name.to_str() {
-                    if name == OCI_WHITEOUT_OPAQUE {
-                        return Some(WhiteoutType::OciOpaque);
-                    } else if name.starts_with(OCI_WHITEOUT_PREFIX) {
-                        return Some(WhiteoutType::OciRemoval);
-                    }
+                if self.name == OCI_WHITEOUT_OPAQUE {
+                    return Some(WhiteoutType::OciOpaque);
+                } else if self.name.starts_with(OCI_WHITEOUT_PREFIX) {
+                    return Some(WhiteoutType::OciRemoval);
                 }
             }
             WhiteoutSpec::Overlayfs => {

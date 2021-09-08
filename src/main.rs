@@ -34,6 +34,6 @@ fn main() {
             .unwrap();
 
     let mut build = BuildTree::new(base_tree);
-    build.apply_tree_by_dfs(upper_tree.data.root(), 0);
+    build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
     build.display_file_tree()
 }

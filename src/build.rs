@@ -88,7 +88,7 @@ impl BuildTree {
                 upper_node_name.clone(),
                 upper_level,
                 upper_parent_name.clone(),
-                &whiteout_type,
+                whiteout_type,
             );
             if found {
                 println!(
@@ -143,7 +143,7 @@ impl BuildTree {
                     level + 1,
                     upper_node,
                     upper_level,
-                    whiteout_type,
+                    whiteout_spec,
                 )
             }
         }
@@ -157,7 +157,7 @@ impl BuildTree {
         upper_node_name: String,
         upper_level: u32,
         upper_parent_name: String,
-        whiteout_type: &WhiteoutType,
+        whiteout_type: WhiteoutType,
     ) -> bool {
         if base_level + 1 == upper_level && base_node_name == upper_parent_name {
             for mut child in base_node.iter_mut() {
@@ -206,7 +206,7 @@ impl BuildTree {
                     upper_node_name.clone(),
                     upper_level,
                     upper_parent_name.clone(),
-                    whiteout_type,
+                    whiteout_type.clone(),
                 ) {
                     return true;
                 }
@@ -244,16 +244,20 @@ impl BuildTree {
 #[cfg(test)]
 mod tests {
     use crate::build::BuildTree;
-    use crate::tree::{FileSystemTree, Overlay};
+    use crate::tree::{FileSystemTree, Overlay, WhiteoutSpec};
     use std::path::PathBuf;
 
     #[test]
     fn test_common_merge() {
         let base_path = PathBuf::from("./file-example/example1/base-dir");
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let upper_path = PathBuf::from("./file-example/example1/upper-dir");
-        let upper_tree = FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0);
@@ -263,26 +267,34 @@ mod tests {
     #[test]
     fn test_upper_file_to_replace_base() {
         let base_path = PathBuf::from("./file-example/example2/base-dir");
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let upper_path = PathBuf::from("./file-example/example2/upper-dir");
-        let upper_tree = FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
-        build.apply_tree_by_dfs(upper_tree.data.root(), 0);
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         build.display_file_tree()
     }
 
     #[test]
     fn test_upper_dir_to_replace_base() {
         let base_path = PathBuf::from("./file-example/example3/base-dir");
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let upper_path = PathBuf::from("./file-example/example3/upper-dir");
-        let upper_tree = FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
-        build.apply_tree_by_dfs(upper_tree.data.root(), 0);
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         build.display_file_tree()
     }
 
@@ -291,12 +303,16 @@ mod tests {
         let base_path = PathBuf::from(
             "/Users/tianzichen/CLionProjects/merge-tree/file-example/example4/base-dir",
         );
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let upper_path = PathBuf::from(
             "/Users/tianzichen/CLionProjects/merge-tree/file-example/example4/upper-dir",
         );
-        let upper_tree = FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0);
@@ -308,15 +324,19 @@ mod tests {
         let base_path = PathBuf::from(
             "/Users/tianzichen/CLionProjects/merge-tree/file-example/example5/base-dir",
         );
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let upper_path = PathBuf::from(
             "/Users/tianzichen/CLionProjects/merge-tree/file-example/example5/upper-dir",
         );
-        let upper_tree = FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
-        build.apply_tree_by_dfs(upper_tree.data.root(), 0);
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         build.display_file_tree()
     }
 
@@ -326,7 +346,9 @@ mod tests {
         let base_path = PathBuf::from(
             "/Users/tianzichen/CLionProjects/merge-tree/file-example/example6/base-dir",
         );
-        let base_tree = FileSystemTree::build_from_file_system(base_path, Overlay::Lower).unwrap();
+        let base_tree =
+            FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+                .unwrap();
 
         let mut build = BuildTree::new(base_tree);
 
@@ -336,9 +358,13 @@ mod tests {
                 i
             );
             let upper_path = PathBuf::from(path);
-            let upper_tree =
-                FileSystemTree::build_from_file_system(upper_path, Overlay::None).unwrap();
-            build.apply_tree_by_dfs(upper_tree.data.root(), 0);
+            let upper_tree = FileSystemTree::build_from_file_system(
+                upper_path,
+                Overlay::None,
+                WhiteoutSpec::Oci,
+            )
+            .unwrap();
+            build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         }
         build.display_file_tree()
     }
