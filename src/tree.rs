@@ -129,7 +129,6 @@ impl TreeNode {
     pub fn build_node_xattrs(&mut self, path: PathBuf) -> io::Result<()> {
         let mut xattrs = xattr::list(path.clone()).unwrap().peekable();
         if xattrs.peek().is_none() {
-            println!("no xattr set on file");
             return Ok(());
         }
         for attr_key in xattrs {
@@ -226,7 +225,7 @@ impl FileSystemTree {
                 //2. create node
                 let mut node = TreeNode::new(String::from(file_name), metadata, overlay);
                 // 2.1 build node xattr
-                node.build_node_xattrs(path.clone())?;
+                node.build_node_xattrs(entry_path.clone())?;
                 // 2.2 build node whiteout
                 if overlay != Overlay::Lower {
                     node.build_node_overlay(whiteout_spec);

@@ -161,11 +161,6 @@ impl BuildTree {
     ) -> bool {
         if base_level + 1 == upper_level && base_node_name == upper_parent_name {
             for mut child in base_node.iter_mut() {
-                println!(
-                    "got upper origin name {},got child name {}",
-                    upper_node_name.as_str()[OCI_WHITEOUT_PREFIX.len()..].to_string(),
-                    child.data().name,
-                );
                 //Case2.1 OCI remove
                 if whiteout_type == WhiteoutType::OciRemoval
                     && upper_node_name.as_str()[OCI_WHITEOUT_PREFIX.len()..].to_string()
@@ -299,7 +294,7 @@ mod tests {
     }
 
     #[test]
-    fn test_oci_upper_remove_base() {
+    fn test_oci_upper_remove() {
         let base_path = PathBuf::from("./file-example/example4/base-dir");
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
@@ -316,7 +311,7 @@ mod tests {
     }
 
     #[test]
-    fn test_oci_upper_dir_opaque_base() {
+    fn test_oci_upper_dir_opaque() {
         let base_path = PathBuf::from("./file-example/example5/base-dir");
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
@@ -353,6 +348,52 @@ mod tests {
             .unwrap();
             build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         }
+        build.display_file_tree()
+    }
+
+    #[test]
+    fn test_overlayfs_upper_remove() {
+        let base_path = PathBuf::from("./file-example/example7/base-dir");
+        let base_tree = FileSystemTree::build_from_file_system(
+            base_path,
+            Overlay::Lower,
+            WhiteoutSpec::Overlayfs,
+        )
+        .unwrap();
+
+        let upper_path = PathBuf::from("./file-example/example7/upper-dir");
+        let upper_tree = FileSystemTree::build_from_file_system(
+            upper_path,
+            Overlay::None,
+            WhiteoutSpec::Overlayfs,
+        )
+        .unwrap();
+
+        let mut build = BuildTree::new(base_tree);
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
+        build.display_file_tree()
+    }
+
+    #[test]
+    fn test_overlayfs_upper_dir_opaque() {
+        let base_path = PathBuf::from("./file-example/example8/base-dir");
+        let base_tree = FileSystemTree::build_from_file_system(
+            base_path,
+            Overlay::Lower,
+            WhiteoutSpec::Overlayfs,
+        )
+        .unwrap();
+
+        let upper_path = PathBuf::from("./file-example/example8/upper-dir");
+        let upper_tree = FileSystemTree::build_from_file_system(
+            upper_path,
+            Overlay::None,
+            WhiteoutSpec::Overlayfs,
+        )
+        .unwrap();
+
+        let mut build = BuildTree::new(base_tree);
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
         build.display_file_tree()
     }
 }
