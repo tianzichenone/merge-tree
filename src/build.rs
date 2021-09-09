@@ -46,12 +46,6 @@ impl BuildTree {
         upper_level: u32,
         whiteout_spec: WhiteoutSpec,
     ) {
-        // skip upper addition
-        if base_node.data().overlay == Overlay::UpperAddition {
-            println!("travel upper node, skip {}", base_node.data().name);
-            return;
-        }
-
         // case0, whether to handle root dir? we should think
         if upper_level <= 0 {
             return;
@@ -227,6 +221,7 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
 
         let upper_path = PathBuf::from("./file-example/example1/upper-dir");
         let upper_tree =
@@ -234,8 +229,10 @@ mod tests {
                 .unwrap();
         println!("show upper tree");
         upper_tree.display_file_tree();
+
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
         println!("show merge tree");
         build.display_base_tree()
     }
@@ -246,14 +243,20 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example2/upper-dir");
         let upper_tree =
             FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -263,14 +266,20 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example3/upper-dir");
         let upper_tree =
             FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -280,14 +289,20 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example4/upper-dir");
         let upper_tree =
             FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -297,14 +312,20 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example5/upper-dir");
         let upper_tree =
             FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -315,6 +336,8 @@ mod tests {
         let base_tree =
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
 
@@ -327,8 +350,11 @@ mod tests {
                 WhiteoutSpec::Oci,
             )
             .unwrap();
+            println!("show upper tree {}", i);
+            upper_tree.display_file_tree();
             build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         }
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -341,6 +367,8 @@ mod tests {
             WhiteoutSpec::Overlayfs,
         )
         .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example7/upper-dir");
         let upper_tree = FileSystemTree::build_from_file_system(
@@ -349,9 +377,13 @@ mod tests {
             WhiteoutSpec::Overlayfs,
         )
         .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 
@@ -364,6 +396,8 @@ mod tests {
             WhiteoutSpec::Overlayfs,
         )
         .unwrap();
+        println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example8/upper-dir");
         let upper_tree = FileSystemTree::build_from_file_system(
@@ -372,9 +406,13 @@ mod tests {
             WhiteoutSpec::Overlayfs,
         )
         .unwrap();
+        println!("show upper tree");
+        upper_tree.display_file_tree();
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
+
+        println!("show merge tree");
         build.display_base_tree()
     }
 }
