@@ -1,7 +1,6 @@
 use crate::build::{OCI_WHITEOUT_OPAQUE, OCI_WHITEOUT_PREFIX, OVERLAYFS_WHITEOUT_OPAQUE};
 use nix::sys::stat;
 use std::collections::HashMap;
-use std::collections::VecDeque;
 use std::ffi::OsString;
 use std::fs;
 use std::fs::Metadata;

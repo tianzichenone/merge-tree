@@ -218,7 +218,7 @@ impl BuildTree {
 #[cfg(test)]
 mod tests {
     use crate::build::BuildTree;
-    use crate::tree::{travel_tree_by_bfs, FileSystemTree, Overlay, WhiteoutSpec};
+    use crate::tree::{FileSystemTree, Overlay, WhiteoutSpec};
     use std::path::PathBuf;
 
     #[test]
@@ -237,7 +237,7 @@ mod tests {
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         println!("show merge tree");
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -254,7 +254,7 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -271,7 +271,7 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -288,7 +288,7 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -305,7 +305,7 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -329,7 +329,7 @@ mod tests {
             .unwrap();
             build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
         }
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -352,7 +352,7 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 
     #[test]
@@ -375,6 +375,6 @@ mod tests {
 
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Overlayfs);
-        build.display_file_tree()
+        build.display_base_tree()
     }
 }
