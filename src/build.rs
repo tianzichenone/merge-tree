@@ -222,6 +222,7 @@ mod tests {
             FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
                 .unwrap();
         println!("show base tree");
+        base_tree.display_file_tree();
 
         let upper_path = PathBuf::from("./file-example/example1/upper-dir");
         let upper_tree =
