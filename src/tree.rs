@@ -8,7 +8,7 @@ use std::fs::Metadata;
 use std::io;
 use std::os::linux::fs::MetadataExt;
 use std::path::PathBuf;
-use trees::Tree;
+use trees::{Node, Tree};
 use xattr;
 
 #[allow(dead_code)]
@@ -37,7 +37,6 @@ pub enum WhiteoutType {
     OverlayFsRemoval,
 }
 
-pub type XattrName = Vec<u8>;
 pub type XattrValue = Vec<u8>;
 
 #[derive(Clone, Default)]
@@ -94,10 +93,12 @@ impl TreeNode {
         self.overlay == Overlay::UpperRemove || self.overlay == Overlay::UpperOpaque
     }
 
+    #[allow(dead_code)]
     pub fn is_remove(&self) -> bool {
         self.overlay == Overlay::UpperRemove
     }
 
+    #[allow(dead_code)]
     pub fn is_opaque(&self) -> bool {
         self.overlay == Overlay::UpperOpaque
     }
@@ -246,34 +247,29 @@ impl FileSystemTree {
         }
         Ok(())
     }
-}
 
-#[allow(dead_code)]
-fn travel_tree_by_bfs(base_tree: &Tree<&str>) {
-    let mut iters = VecDeque::new();
-    let mut base_level = 0;
-    iters.push_back(base_tree.root());
-    while !iters.is_empty() {
-        let node = iters.pop_front().unwrap();
-
-        let mut parent_name: String = String::from("");
-        match node.parent() {
-            None => {}
-            Some(parent) => parent_name = parent.data().to_string(),
+    pub fn display_file_tree(&self) {
+        let level = 0;
+        println!("{}", self.data.root().data().name);
+        for node in self.data.iter() {
+            Self::display_file_tree_inner(node, level);
         }
-        println!(
-            "current level {}, value {}, parent {}",
-            base_level,
-            node.data().to_string(),
-            parent_name,
-        );
-        let mut it = node.iter();
-        let mut size = node.degree();
+    }
 
-        while size > 0 {
-            iters.push_back(it.next().unwrap());
-            size -= 1;
+    fn display_file_tree_inner(node: &Node<TreeNode>, level: usize) {
+        let mut prefix = "├──".to_string();
+        let mut i = 0;
+        while i < level {
+            prefix = format!("│  {}", prefix);
+            i += 1;
         }
-        base_level += 1;
+
+        println!("{} {}", prefix, node.data().name,);
+
+        if !node.has_no_child() {
+            for child in node.iter() {
+                Self::display_file_tree_inner(child, level + 1);
+            }
+        }
     }
 }

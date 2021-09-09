@@ -48,7 +48,7 @@ impl BuildTree {
     ) {
         // skip upper addition
         if base_node.data().overlay == Overlay::UpperAddition {
-            log::trace!("travel upper node, skip {}", base_node.data().name);
+            println!("travel upper node, skip {}", base_node.data().name);
             return;
         }
 
@@ -210,36 +210,15 @@ impl BuildTree {
         false
     }
 
-    pub fn display_file_tree(&self) {
-        let level = 0;
-        println!("{}", self.base_tree.data.root().data().name);
-        for node in self.base_tree.data.iter() {
-            Self::display_file_tree_inner(node, level);
-        }
-    }
-
-    fn display_file_tree_inner(node: &Node<TreeNode>, level: usize) {
-        let mut prefix = "├──".to_string();
-        let mut i = 0;
-        while i < level {
-            prefix = format!("│  {}", prefix);
-            i += 1;
-        }
-
-        println!("{} {}", prefix, node.data().name,);
-
-        if !node.has_no_child() {
-            for child in node.iter() {
-                Self::display_file_tree_inner(child, level + 1);
-            }
-        }
+    pub fn display_base_tree(&self) {
+        self.base_tree.display_file_tree()
     }
 }
 
 #[cfg(test)]
 mod tests {
     use crate::build::BuildTree;
-    use crate::tree::{FileSystemTree, Overlay, WhiteoutSpec};
+    use crate::tree::{travel_tree_by_bfs, FileSystemTree, Overlay, WhiteoutSpec};
     use std::path::PathBuf;
 
     #[test]
@@ -253,9 +232,11 @@ mod tests {
         let upper_tree =
             FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
                 .unwrap();
-
+        println!("show upper tree");
+        upper_tree.display_file_tree();
         let mut build = BuildTree::new(base_tree);
         build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+        println!("show merge tree");
         build.display_file_tree()
     }
 
