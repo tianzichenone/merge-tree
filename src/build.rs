@@ -360,6 +360,7 @@ mod tests {
     }
 
     #[test]
+    /// Create overlay whiteout first
     fn test_overlayfs_upper_remove() {
         let base_path = PathBuf::from("./file-example/example7/base-dir");
         let base_tree = FileSystemTree::build_from_file_system(
@@ -389,6 +390,7 @@ mod tests {
     }
 
     #[test]
+    /// Create overlay whiteout first
     fn test_overlayfs_upper_dir_opaque() {
         let base_path = PathBuf::from("./file-example/example8/base-dir");
         let base_tree = FileSystemTree::build_from_file_system(
