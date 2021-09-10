@@ -7,7 +7,7 @@ used to learn how overlayfs metadata merge, include handing docker oci and overl
 ## run test, we should create overlayfs whiteout file
 make gen_overlayfs_test
 or next steps
-## cargo test overlayfs whiteout
+### cargo test overlayfs whiteout
 mkdir -p ./example7/upper-dir/a
 mkdir -p ./example7/upper-dir/b
 
@@ -17,7 +17,7 @@ mknod file1 c 0 0
 cd ./example7/upper-dir/b
 mknod file2 c 0 0
 
-## cargo test overlayfs opaque
+### cargo test overlayfs opaque
 
 mkdir -p ./example8/upper-dir/a
 mkdir -p ./example8/upper-dir/b
@@ -36,5 +36,11 @@ setfattr -n "trusted.overlay.opaque" -v y c/
 make docker_static_release
 
 ## test
-make test 
-make docker_test
+### make test 
+### make docker_test
+
+## use 
+### oci whiteout
+merge-tree -b ./base -u ./upper1 -u ./upper2 -u ./upper3
+### overlay whiteout
+merge-tree -b ./base -u ./upper1 -u ./upper2 -u ./upper3 -w 1
