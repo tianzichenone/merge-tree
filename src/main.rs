@@ -1,9 +1,11 @@
 mod build;
+mod option;
 mod tree;
+use structopt::StructOpt;
 
 use crate::build::BuildTree;
+use crate::option::MergeTreeOpt;
 use crate::tree::{FileSystemTree, Overlay, WhiteoutSpec};
-use std::path::PathBuf;
 
 ///               basedir
 ///                 /
@@ -21,19 +23,29 @@ use std::path::PathBuf;
 /// /a
 
 fn main() {
-    let base_path =
-        PathBuf::from("/Users/tianzichen/CLionProjects/merge-tree/file-example/example2/base-dir");
+    let opt = MergeTreeOpt::from_args();
+    let mut whiteout_spec = WhiteoutSpec::Oci;
+    if opt.whiteout == 1 {
+        whiteout_spec = WhiteoutSpec::Overlayfs
+    }
+
+    // 1. build base tree
     let base_tree =
-        FileSystemTree::build_from_file_system(base_path, Overlay::Lower, WhiteoutSpec::Oci)
+        FileSystemTree::build_from_file_system(opt.base_path, Overlay::Lower, whiteout_spec)
             .unwrap();
 
-    let upper_path =
-        PathBuf::from("/Users/tianzichen/CLionProjects/merge-tree/file-example/example2/upper-dir");
-    let upper_tree =
-        FileSystemTree::build_from_file_system(upper_path, Overlay::None, WhiteoutSpec::Oci)
-            .unwrap();
-
+    // 2. create tree build
     let mut build = BuildTree::new(base_tree);
-    build.apply_tree_by_dfs(upper_tree.data.root(), 0, WhiteoutSpec::Oci);
+
+    // 3. build upper tree by upper path and then to merge
+    for upper_path in opt.upper_path_list {
+        let upper_tree =
+            FileSystemTree::build_from_file_system(upper_path, Overlay::None, whiteout_spec)
+                .unwrap();
+
+        build.apply_tree_by_dfs(upper_tree.data.root(), 0, whiteout_spec);
+    }
+
+    // 4. display merge tree
     build.display_base_tree()
 }

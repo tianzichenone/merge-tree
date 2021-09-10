@@ -1,5 +1,4 @@
 use crate::tree::{FileSystemTree, Overlay, TreeNode, WhiteoutSpec, WhiteoutType};
-use log;
 use trees::{Node, Tree};
 
 pub const OCI_WHITEOUT_PREFIX: &str = ".wh.";
@@ -47,7 +46,7 @@ impl BuildTree {
         whiteout_spec: WhiteoutSpec,
     ) {
         // case0, whether to handle root dir? we should think
-        if upper_level <= 0 {
+        if upper_level == 0 {
             return;
         }
 
@@ -157,8 +156,7 @@ impl BuildTree {
             for mut child in base_node.iter_mut() {
                 //Case2.1 OCI remove
                 if whiteout_type == WhiteoutType::OciRemoval
-                    && upper_node_name.as_str()[OCI_WHITEOUT_PREFIX.len()..].to_string()
-                        == child.data().name
+                    && upper_node_name.as_str()[OCI_WHITEOUT_PREFIX.len()..] == child.data().name
                 {
                     child.detach();
                     return true;

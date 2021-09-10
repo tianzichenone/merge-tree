@@ -8,7 +8,6 @@ use std::io;
 use std::os::linux::fs::MetadataExt;
 use std::path::PathBuf;
 use trees::{Node, Tree};
-use xattr;
 
 #[allow(dead_code)]
 #[derive(Clone, Copy, PartialEq)]
@@ -135,7 +134,7 @@ impl TreeNode {
             let value = xattr::get(path.clone(), &attr_key)?;
             self.xattrs.add(attr_key, value.unwrap_or_default())
         }
-        return Ok(());
+        Ok(())
     }
 
     pub fn build_node_overlay(&mut self, whiteout_spec: WhiteoutSpec) {
@@ -205,7 +204,7 @@ impl FileSystemTree {
         // Build node xattrs
         node.build_node_xattrs(path.clone())?;
         let mut data = Tree::new(node);
-        Self::build_file_system_subtree(&mut data, path.clone(), overlay, whiteout_spec)?;
+        Self::build_file_system_subtree(&mut data, path, overlay, whiteout_spec)?;
         Ok(FileSystemTree { data })
     }
 
@@ -216,7 +215,7 @@ impl FileSystemTree {
         whiteout_spec: WhiteoutSpec,
     ) -> io::Result<()> {
         if path.is_dir() {
-            for entry in fs::read_dir(path.clone())? {
+            for entry in fs::read_dir(path)? {
                 //1 go entry path and filename
                 let entry = entry?;
                 let entry_path = entry.path();
