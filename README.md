@@ -1,4 +1,4 @@
-# Merge Tree library
+# Merge Tree Project
 
 used to learn how overlayfs metadata merge, include handing docker oci and overlayfs whiteout file
 
